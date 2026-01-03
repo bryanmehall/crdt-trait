@@ -7,12 +7,22 @@ edition = "2024"
 serde = { version = "1.0", features = ["derive"], optional = true }
 proptest = { version = "1.0", optional = true }
 pretty_assertions = { version = "1.4", optional = true }
+crdt-derive = { path = "./crdt-derive", optional = true }
 
 [features]
-default = ["proptest"]
+default = ["proptest", "derive"]
 # When proptest feature is enabled, we include the proptest dependency and pretty_assertions
 proptest = ["dep:proptest", "dep:pretty_assertions"]
+derive = ["dep:crdt-derive"]
 
 [[example]]
 name = "max_value"
+required-features = ["proptest"]
+
+[[example]]
+name = "crdt_compose"
+required-features = ["proptest", "derive"]
+
+[[example]]
+name = "consistency_failure"
 required-features = ["proptest"]
