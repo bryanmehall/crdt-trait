@@ -40,3 +40,20 @@ fn main() {
     properties::check_eventual_consistency::<MyStruct>();
     println!("All CRDT properties (Idempotence, Commutativity, Associativity) hold!");
 }
+
+#[test]
+fn test_my_struct_crdt() {
+    properties::check_eventual_consistency::<MyStruct>();
+}
+
+#[test]
+fn test_merge() {
+    let mut a = MyStruct { value: 10 };
+    let b = MyStruct { value: 20 };
+    a.merge(&b);
+    assert_eq!(a.value, 20);
+
+    let mut c = MyStruct { value: 30 };
+    c.merge(&a);
+    assert_eq!(c.value, 30);
+}
