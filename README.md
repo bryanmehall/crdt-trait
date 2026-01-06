@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/bryanmehall/crdt-trait/actions/workflows/ci.yml/badge.svg)](https://github.com/bryanmehall/crdt-trait/actions/workflows/ci.yml)
 
-A Rust library for creating creating robust distributed systems using custom Conflict-Free Replicated Datatypes.
+A Rust library for creating robust distributed systems using custom Conflict-Free Replicated Datatypes.
 This crate provides a well tested `CRDT` trait that lets you create custom, serializable CRDTs for your domain specific applications so that you can confidently create eventually consistent distributed systems.
 It also includes off the shelf implementations of common CRDTs with examples that can be used directly or composed into larger CRDT data strucutres.
 ## Example
