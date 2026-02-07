@@ -47,8 +47,14 @@ fn generate_crdt_impl(input: DeriveInput) -> syn::Result<proc_macro2::TokenStrea
 
     Ok(quote! {
         impl #impl_generics crdt::Crdt for #name #ty_generics #where_clause {
+            type Value = Self;
+
             fn merge(&mut self, other: &Self) {
                 #merge_body
+            }
+
+            fn value(&self) -> Self::Value {
+                self.clone()
             }
         }
     })

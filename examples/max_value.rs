@@ -10,8 +10,14 @@ struct MyStruct {
 }
 
 impl Crdt for MyStruct {
+    type Value = u32;
+
     fn merge(&mut self, other: &Self) {
         self.value = self.value.max(other.value);
+    }
+
+    fn value(&self) -> Self::Value {
+        self.value
     }
 }
 

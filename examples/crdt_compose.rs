@@ -24,12 +24,18 @@ impl GCounter {
 }
 
 impl Crdt for GCounter {
+    type Value = u64;
+
     /// Merges two GCounters by taking the maximum value for each node ID.
     fn merge(&mut self, other: &Self) {
         for (node_id, &other_count) in &other.counts {
             let entry = self.counts.entry(node_id.clone()).or_insert(0);
             *entry = (*entry).max(other_count);
         }
+    }
+
+    fn value(&self) -> Self::Value {
+        self.value()
     }
 }
 

@@ -13,9 +13,15 @@ pub mod checks;
 /// containing helper functions to verify CRDT properties. These functions
 /// require the type to implement `proptest::arbitrary::Arbitrary`.
 pub trait Crdt: Clone + Debug + PartialEq + Default {
+    /// The Rust type that represents the actual value of the CRDT (e.g. u32 for a GCounter).
+    type Value;
+
     fn init() -> Self {
         Self::default()
     }
     /// Merges another CRDT into this one.
     fn merge(&mut self, other: &Self);
+
+    /// Returns the current value of the CRDT.
+    fn value(&self) -> Self::Value;
 }

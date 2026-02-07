@@ -12,9 +12,15 @@ struct BrokenCrdt {
 }
 
 impl Crdt for BrokenCrdt {
+    type Value = u32;
+
     fn merge(&mut self, _other: &Self) {
         // ERROR: We ignore the other value.
         // For a valid Max-Register CRDT, this should be: self.value = self.value.max(_other.value);
+    }
+
+    fn value(&self) -> Self::Value {
+        self.value
     }
 }
 
