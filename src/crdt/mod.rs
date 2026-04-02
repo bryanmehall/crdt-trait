@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-#[cfg(feature = "proptest")]                                                                                                       │
+#[cfg(feature = "proptest")]
 pub mod checks;
 
 /// The core trait for Conflict-Free Replicated Datatypes.
