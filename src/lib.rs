@@ -1,3 +1,7 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+
+extern crate alloc;
+
 pub mod causal;
 pub mod crdt;
 pub mod identified;
@@ -6,9 +10,12 @@ pub mod replica;
 pub mod traits;
 
 pub use crate::causal::itc::{ItcClock, ItcId, ItcReplica};
+#[cfg(feature = "std")]
 pub use crate::causal::vector::VectorClock;
 pub use crate::crdt::Crdt;
+#[cfg(feature = "std")]
 pub use crate::identified::gcounter::GCounter;
+#[cfg(feature = "std")]
 pub use crate::primitive::gset::GSet;
 pub use crate::replica::Replica;
 pub use crate::traits::Apply;

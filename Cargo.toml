@@ -1,3 +1,6 @@
+[workspace]
+members = [".", "crdt-derive"]
+
 [package]
 name = "crdt"
 version = "0.1.0"
@@ -10,9 +13,10 @@ pretty_assertions = { version = "1.4", optional = true }
 crdt-derive = { path = "./crdt-derive", optional = true }
 
 [features]
-default = ["proptest", "derive"]
+default = ["std", "proptest", "derive"]
+std = []
 # When proptest feature is enabled, we include the proptest dependency and pretty_assertions
-proptest = ["dep:proptest", "dep:pretty_assertions"]
+proptest = ["dep:proptest", "dep:pretty_assertions", "std"]
 derive = ["dep:crdt-derive"]
 
 [[example]]

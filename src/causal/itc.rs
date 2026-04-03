@@ -1,6 +1,7 @@
 use crate::{Apply, Crdt, Replica};
-use std::borrow::Cow;
-use std::cmp;
+use alloc::borrow::Cow;
+use alloc::boxed::Box;
+use core::cmp;
 
 // --- ID TREE (Identity) ---
 
@@ -69,7 +70,7 @@ impl Cost {
     }
 }
 
-impl std::ops::Add<i32> for Cost {
+impl core::ops::Add<i32> for Cost {
     type Output = Cost;
     fn add(self, rhs: i32) -> Cost {
         Cost(self.0 + rhs)

@@ -10,7 +10,7 @@ pub trait Replica {
     /// The specific type of identifier this replica produces.
     ///
     /// This ID is passed to CRDT update methods to sign operations or track causality.
-    type Id: Clone + PartialEq + std::fmt::Debug;
+    type Id: Clone + PartialEq + core::fmt::Debug;
 
     /// Returns the current identifier for this replica.
     fn id(&self) -> Self::Id;
