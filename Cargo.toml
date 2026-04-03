@@ -7,14 +7,14 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"], optional = true }
+serde = { version = "1.0", default-features = false, features = ["derive", "alloc"], optional = true }
 proptest = { version = "1.0", optional = true }
 pretty_assertions = { version = "1.4", optional = true }
 crdt-derive = { path = "./crdt-derive", optional = true }
 
 [features]
 default = ["std", "proptest", "derive"]
-std = []
+std = ["serde?/std"]
 # When proptest feature is enabled, we include the proptest dependency and pretty_assertions
 proptest = ["dep:proptest", "dep:pretty_assertions", "std"]
 derive = ["dep:crdt-derive"]
