@@ -4,8 +4,8 @@ use proptest::prelude::*;
 use proptest::test_runner::{Config, TestCaseError, TestError, TestRunner};
 use core::fmt::Debug;
 
-/// Private helper to handle test results and provide clean error messages.
-fn handle_test_result<T: Debug>(result: Result<(), TestError<T>>, input_labels: &str) {
+/// Helper to handle test results and provide clean error messages.
+pub fn handle_test_result<T: Debug>(result: Result<(), TestError<T>>, input_labels: &str) {
     match result {
         Ok(_) => (),
         Err(TestError::Fail(reason, counterexample)) => {
@@ -22,7 +22,7 @@ fn handle_test_result<T: Debug>(result: Result<(), TestError<T>>, input_labels: 
 }
 
 /// Returns a TestRunner configured for CRDT property checks.
-fn create_runner() -> TestRunner {
+pub fn create_runner() -> TestRunner {
     TestRunner::new(Config {
         failure_persistence: None,
         ..Config::default()

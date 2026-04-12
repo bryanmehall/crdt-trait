@@ -1,7 +1,11 @@
-use crate::{Apply, Crdt, Replica};
+use super::Causal;
+use crate::{Apply, Crdt, DeltaSync, Replica};
 use alloc::borrow::Cow;
 use alloc::boxed::Box;
 use core::cmp;
+
+#[cfg(feature = "proptest")]
+use proptest::prelude::*;
 
 // --- ID TREE (Identity) ---
 
@@ -148,6 +152,32 @@ impl Default for ItcClock {
     }
 }
 
+impl DeltaSync for ItcClock {
+    type Summary = EventTree;
+    type Delta = Self;
+
+    fn summary(&self) -> Self::Summary {
+        self.tree.clone()
+    }
+
+    fn delta_from_summary(&self, remote_summary: &Self::Summary) -> Self {
+        ItcClock {
+            tree: self.tree.delta(remote_summary),
+        }
+    }
+
+    fn merge_delta(&mut self, delta: &Self) {
+        self.merge(delta);
+    }
+}
+
+impl Causal for ItcClock {
+    // ITC doesn't use traditional (ReplicaId, SeqNum) dots — its "dots" are
+    // structural positions in the event tree. We use (ItcId, u32) as a nominal
+    // representation, but this is primarily for trait satisfaction.
+    type Dot = (ItcId, u32);
+}
+
 impl Crdt for ItcClock {
     type Value = EventTree; // The raw tree is the value
 
@@ -270,6 +300,69 @@ impl EventTree {
         match self {
             EventTree::Leaf { n } => *n,
             EventTree::Node { n, .. } => *n,
+        }
+    }
+
+    /// Compute a delta containing only the events in `self` that exceed `remote`.
+    /// Where the remote is equal or ahead, emit zero. The result satisfies:
+    /// `remote.join(&self.delta(&remote)) == remote.join(&self)`
+    ///
+    /// The delta preserves absolute values from `self` so that `join` (pointwise max)
+    /// produces the correct result.
+    fn delta(&self, remote: &EventTree) -> EventTree {
+        // If remote already subsumes self (remote.max >= self.max at every point),
+        // we can short-circuit. But the general case needs structural recursion.
+        match (self, remote) {
+            // Both leaves: emit self's value if ahead, zero otherwise
+            (EventTree::Leaf { n: n1 }, EventTree::Leaf { n: n2 }) => {
+                if *n1 > *n2 {
+                    EventTree::leaf(*n1)
+                } else {
+                    EventTree::zero()
+                }
+            }
+            // Self is a leaf, remote is a node: expand self to a node and recurse
+            (EventTree::Leaf { n: n1 }, EventTree::Node { .. }) => {
+                let expanded = EventTree::node(
+                    *n1,
+                    Box::new(EventTree::zero()),
+                    Box::new(EventTree::zero()),
+                );
+                expanded.delta(remote)
+            }
+            // Self is a node, remote is a leaf: expand remote to a node and recurse
+            (EventTree::Node { .. }, EventTree::Leaf { n: n2 }) => {
+                let expanded = EventTree::node(
+                    *n2,
+                    Box::new(EventTree::zero()),
+                    Box::new(EventTree::zero()),
+                );
+                self.delta(&expanded)
+            }
+            // Both nodes: normalize to same base and recurse on children.
+            // We normalize both trees to base 0 by lifting children, so the
+            // recursive calls produce absolute-valued deltas.
+            (
+                EventTree::Node {
+                    n: n1,
+                    left: l1,
+                    right: r1,
+                },
+                EventTree::Node {
+                    n: n2,
+                    left: l2,
+                    right: r2,
+                },
+            ) => {
+                // Lift children to absolute values (base 0)
+                let sl = l1.clone().lift(*n1);
+                let sr = r1.clone().lift(*n1);
+                let rl = l2.clone().lift(*n2);
+                let rr = r2.clone().lift(*n2);
+                let dl = sl.delta(&rl);
+                let dr = sr.delta(&rr);
+                EventTree::node(0, Box::new(dl), Box::new(dr)).norm()
+            }
         }
     }
 
@@ -498,5 +591,55 @@ impl IdTree {
             }
             _ => unreachable!(),
         }
+    }
+}
+
+#[cfg(feature = "proptest")]
+impl Arbitrary for ItcClock {
+    type Parameters = ();
+    type Strategy = BoxedStrategy<Self>;
+
+    fn arbitrary_with(_: Self::Parameters) -> Self::Strategy {
+        // Generate clocks by simulating fork/tick sequences on 1-3 replicas.
+        // Each replica does 0-4 ticks, then we merge a random subset.
+        (1usize..=3, proptest::collection::vec(0u8..5, 1..=3))
+            .prop_flat_map(|(num_replicas, tick_counts)| {
+                let tick_counts: Vec<u8> =
+                    tick_counts.into_iter().take(num_replicas).collect();
+                Just(tick_counts)
+            })
+            .prop_map(|tick_counts| {
+                let mut replica = ItcReplica::new();
+                let clock = ItcClock::default();
+
+                // Fork off replicas and tick each independently, then merge
+                let mut clocks = Vec::new();
+                let mut replicas = Vec::new();
+
+                for _ in 0..tick_counts.len().saturating_sub(1) {
+                    let forked_replica = replica.fork();
+                    let forked_clock = clock.clone();
+                    replicas.push(forked_replica);
+                    clocks.push(forked_clock);
+                }
+                replicas.push(replica);
+                clocks.push(clock);
+
+                for (i, &ticks) in tick_counts.iter().enumerate() {
+                    if i < clocks.len() {
+                        for _ in 0..ticks {
+                            clocks[i].apply((), replicas[i].id());
+                        }
+                    }
+                }
+
+                // Merge all clocks together
+                let mut result = ItcClock::default();
+                for c in &clocks {
+                    result.merge(c);
+                }
+                result
+            })
+            .boxed()
     }
 }
