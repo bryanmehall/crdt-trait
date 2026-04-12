@@ -1,7 +1,11 @@
-use crate::{Apply, Crdt};
+use super::Causal;
+use crate::{Apply, Crdt, DeltaSync};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::hash::Hash;
+
+#[cfg(feature = "proptest")]
+use proptest::prelude::*;
 
 /// A Vector Clock CRDT.
 ///
@@ -147,5 +151,59 @@ where
         } else {
             Some(Ordering::Equal)
         }
+    }
+}
+
+impl<I> DeltaSync for VectorClock<I>
+where
+    I: Hash + Eq + Clone + std::fmt::Debug,
+{
+    type Summary = HashMap<I, u64>;
+    type Delta = Self;
+
+    fn summary(&self) -> Self::Summary {
+        self.clocks.clone()
+    }
+
+    fn delta_from_summary(&self, remote_summary: &Self::Summary) -> Self {
+        let mut delta = VectorClock::new();
+        for (replica, &count) in &self.clocks {
+            let remote_count = remote_summary.get(replica).copied().unwrap_or(0);
+            if count > remote_count {
+                delta.clocks.insert(replica.clone(), count);
+            }
+        }
+        delta
+    }
+
+    fn merge_delta(&mut self, delta: &Self) {
+        self.merge(delta);
+    }
+}
+
+impl<I> Causal for VectorClock<I>
+where
+    I: Hash + Eq + Clone + std::fmt::Debug,
+{
+    type Dot = (I, u64);
+}
+
+#[cfg(feature = "proptest")]
+impl Arbitrary for VectorClock<String> {
+    type Parameters = ();
+    type Strategy = BoxedStrategy<Self>;
+
+    fn arbitrary_with(_: Self::Parameters) -> Self::Strategy {
+        proptest::collection::hash_map("[a-c]".prop_map(String::from), 0u64..50, 0..4)
+            .prop_map(|clocks| {
+                let mut vc = VectorClock::new();
+                for (replica, count) in clocks {
+                    for _ in 0..count {
+                        vc.inc(replica.clone());
+                    }
+                }
+                vc
+            })
+            .boxed()
     }
 }
