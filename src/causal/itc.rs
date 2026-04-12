@@ -82,12 +82,16 @@ impl core::ops::Add<i32> for Cost {
 /// The Identity resource for an Interval Tree Clock.
 ///
 /// This represents a unique portion of the identity space [0, 1].
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ItcId(pub IdTree);
 
 /// The Replica manager for ITC.
 ///
 /// Handles forking and joining identities.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ItcReplica {
     pub tree: IdTree,
@@ -129,6 +133,8 @@ impl Replica for ItcReplica {
 /// The Event Clock for ITC.
 ///
 /// Tracks causality using an Interval Tree.
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ItcClock {
     pub tree: EventTree,

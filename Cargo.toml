@@ -14,6 +14,7 @@ crdt-derive = { path = "./crdt-derive", optional = true }
 
 [features]
 default = ["std", "proptest", "derive"]
+serde = ["dep:serde"]
 std = ["serde?/std"]
 # When proptest feature is enabled, we include the proptest dependency and pretty_assertions
 proptest = ["dep:proptest", "dep:pretty_assertions", "std"]

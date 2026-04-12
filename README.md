@@ -21,18 +21,20 @@ node_1_state.update(|&mut old_state| old_state.grow_only_field += 1 );
 
 ## Eventual Consistency
 Eventually consistent data structures allow the state of nodes within a distributed system to diverge when disconnected and then re-combine to an agreed upon state without central coordination.
-More formally, eventually consistent data structure must obey the following properties:
-### Idempotence
+More formally, eventually consistent data structure must obey the following properties.
+These properties are verified at test time using property-based testing via [`proptest`](https://crates.io/crates/proptest).
+
+### [Idempotence](src/crdt/checks.rs#check_idempotence)
 _An update applied multiple times will have the same effect as if it is only applied once_
 
 For a state update $A$ and a merge operator $\sqcup$, $A \sqcup A = A$
 
-### Commutativity
+### [Commutativity](src/crdt/checks.rs#check_commutativity)
 _The order of applying updates does not matter_
 
 For state updates $A$ and $B$ and a merge operator $\sqcup$, $A \sqcup B = B \sqcup A$
 
-### Associativity
+### [Associativity](src/crdt/checks.rs#check_associativity)
 _Updates from several nodes can be grouped arbitrarily_
 
 For state updates $A$, $B$, and $C$, and a merge operator $\sqcup$, $(A \sqcup B) \sqcup C = A \sqcup (B \sqcup C)$
