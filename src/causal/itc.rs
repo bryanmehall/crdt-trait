@@ -245,10 +245,9 @@ impl Normalisable for EventTree {
 
                 if let (EventTree::Leaf { n: m1 }, EventTree::Leaf { n: m2 }) =
                     (&norm_left, &norm_right)
+                    && m1 == m2
                 {
-                    if m1 == m2 {
-                        return EventTree::leaf(n + m1);
-                    }
+                    return EventTree::leaf(n + m1);
                 }
 
                 let min_left = norm_left.n(); // n() extracts n from leaf or node
