@@ -2,6 +2,13 @@
 name = "crdt-derive"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.85"
+description = "Derive macros (Crdt, DeltaSync) for the crdt-trait crate."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/bryanmehall/crdt-trait"
+keywords = ["crdt", "derive", "macro", "distributed"]
+categories = ["data-structures", "rust-patterns"]
+authors = ["Bryan Mehall <bryan@domahome.com>"]
 
 [lib]
 proc-macro = true

@@ -2,15 +2,30 @@
 members = [".", "crdt-derive"]
 
 [package]
-name = "crdt"
+name = "crdt-trait"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.85"
+description = "A toolkit of composable, well-tested CRDT traits and implementations (GCounter, GSet, VectorClock, Interval Tree Clocks) with delta-state sync and property-based correctness checks."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/bryanmehall/crdt-trait"
+readme = "README.md"
+keywords = ["crdt", "distributed", "replication", "eventual-consistency", "no-std"]
+categories = ["data-structures", "concurrency", "no-std"]
+authors = ["Bryan Mehall <bryan@domahome.com>"]
+exclude = [".github/", ".claude/"]
+
+# Keep the importable crate name `crdt` even though the published package is
+# `crdt-trait` (the `crdt` package name is already taken on crates.io). This
+# preserves `use crdt::...` and the `crdt::` paths emitted by `crdt-derive`.
+[lib]
+name = "crdt"
 
 [dependencies]
 serde = { version = "1.0", default-features = false, features = ["derive", "alloc"], optional = true }
 proptest = { version = "1.0", optional = true }
 pretty_assertions = { version = "1.4", optional = true }
-crdt-derive = { path = "./crdt-derive", optional = true }
+crdt-derive = { path = "./crdt-derive", version = "0.1.0", optional = true }
 
 [features]
 default = ["std", "proptest", "derive"]
