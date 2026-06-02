@@ -113,8 +113,7 @@ fn generate_delta_sync_impl(input: DeriveInput) -> syn::Result<proc_macro2::Toke
             };
 
             // Generate indices for tuple access in summary
-            let indices: Vec<syn::Index> =
-                (0..field_names.len()).map(syn::Index::from).collect();
+            let indices: Vec<syn::Index> = (0..field_names.len()).map(syn::Index::from).collect();
 
             Ok(quote! {
                 // Generated delta struct

@@ -1,5 +1,5 @@
-use crdt::{Crdt, DeltaSync, GCounter, GSet, ItcClock, VectorClock};
 use crdt::properties;
+use crdt::{Crdt, DeltaSync, GCounter, GSet, ItcClock, VectorClock};
 use proptest::prelude::*;
 
 fn main() {
@@ -14,13 +14,21 @@ fn main() {
     replica_b.add(10, "alice".to_string());
 
     // Then they diverge
-    replica_a.add(5, "alice".to_string());  // alice: 15 on A
-    replica_a.add(3, "bob".to_string());    // bob: 3 on A
+    replica_a.add(5, "alice".to_string()); // alice: 15 on A
+    replica_a.add(3, "bob".to_string()); // bob: 3 on A
 
-    replica_b.add(7, "carol".to_string());  // carol: 7 on B
+    replica_b.add(7, "carol".to_string()); // carol: 7 on B
 
-    println!("Replica A: {:?} (value={})", replica_a.summary(), replica_a.value());
-    println!("Replica B: {:?} (value={})", replica_b.summary(), replica_b.value());
+    println!(
+        "Replica A: {:?} (value={})",
+        replica_a.summary(),
+        replica_a.value()
+    );
+    println!(
+        "Replica B: {:?} (value={})",
+        replica_b.summary(),
+        replica_b.value()
+    );
 
     // --- Sync Protocol ---
     // Step 1: B sends its summary to A
@@ -29,11 +37,19 @@ fn main() {
 
     // Step 2: A computes delta (what B is missing)
     let delta_for_b = replica_a.delta_from_summary(&b_summary);
-    println!("2. A computes delta for B: {:?} (value={})", delta_for_b.summary(), delta_for_b.value());
+    println!(
+        "2. A computes delta for B: {:?} (value={})",
+        delta_for_b.summary(),
+        delta_for_b.value()
+    );
 
     // Step 3: B applies the delta
     replica_b.merge_delta(&delta_for_b);
-    println!("3. B after applying delta: {:?} (value={})", replica_b.summary(), replica_b.value());
+    println!(
+        "3. B after applying delta: {:?} (value={})",
+        replica_b.summary(),
+        replica_b.value()
+    );
 
     // Verify: B should now have everything A had, plus its own state
     let mut expected = GCounter::new();
@@ -47,7 +63,11 @@ fn main() {
     let delta_for_a = replica_b.delta_from_summary(&a_summary);
     replica_a.merge_delta(&delta_for_a);
 
-    println!("4. A after reverse sync: {:?} (value={})", replica_a.summary(), replica_a.value());
+    println!(
+        "4. A after reverse sync: {:?} (value={})",
+        replica_a.summary(),
+        replica_a.value()
+    );
     assert_eq!(replica_a, replica_b);
     println!("\nBoth replicas converged!\n");
 

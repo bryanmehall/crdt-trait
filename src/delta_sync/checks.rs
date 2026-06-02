@@ -1,6 +1,6 @@
 use super::DeltaSync;
-use crate::crdt::checks::{check_eventual_consistency, create_runner, handle_test_result};
 use crate::Crdt;
+use crate::crdt::checks::{check_eventual_consistency, create_runner, handle_test_result};
 use proptest::prelude::*;
 use proptest::test_runner::TestCaseError;
 

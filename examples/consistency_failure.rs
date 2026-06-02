@@ -41,7 +41,7 @@ fn main() {
     );
     println!("We have a 'BrokenCrdt' that ignores the 'other' value during a merge.\n");
 
-    let mut a = BrokenCrdt { value: 10 };
+    let a = BrokenCrdt { value: 10 };
     let b = BrokenCrdt { value: 20 };
 
     println!("Initial state: a = {:?}, b = {:?}", a, b);

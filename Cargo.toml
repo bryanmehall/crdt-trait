@@ -35,3 +35,7 @@ required-features = ["proptest"]
 [[example]]
 name = "delta_sync"
 required-features = ["proptest"]
+
+[[example]]
+name = "delta_remote_sync"
+required-features = ["proptest", "derive"]

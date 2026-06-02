@@ -10,18 +10,18 @@ pub mod primitive;
 pub mod replica;
 pub mod traits;
 
+pub use crate::causal::Causal;
 pub use crate::causal::itc::{ItcClock, ItcId, ItcReplica};
 #[cfg(feature = "std")]
 pub use crate::causal::vector::VectorClock;
 pub use crate::crdt::Crdt;
+pub use crate::delta_sync::DeltaSync;
+pub use crate::identified::Identified;
 #[cfg(feature = "std")]
 pub use crate::identified::gcounter::GCounter;
 #[cfg(feature = "std")]
 pub use crate::primitive::gset::GSet;
 pub use crate::replica::Replica;
-pub use crate::causal::Causal;
-pub use crate::delta_sync::DeltaSync;
-pub use crate::identified::Identified;
 pub use crate::traits::Apply;
 
 #[cfg(feature = "derive")]

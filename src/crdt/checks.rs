@@ -1,8 +1,8 @@
 use super::Crdt;
+use core::fmt::Debug;
 use pretty_assertions::Comparison;
 use proptest::prelude::*;
 use proptest::test_runner::{Config, TestCaseError, TestError, TestRunner};
-use core::fmt::Debug;
 
 /// Helper to handle test results and provide clean error messages.
 pub fn handle_test_result<T: Debug>(result: Result<(), TestError<T>>, input_labels: &str) {

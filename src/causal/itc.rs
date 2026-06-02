@@ -275,10 +275,9 @@ impl Normalisable for EventTree {
 
                 if let (EventTree::Leaf { n: m1 }, EventTree::Leaf { n: m2 }) =
                     (&norm_left, &norm_right)
+                    && m1 == m2
                 {
-                    if m1 == m2 {
-                        return EventTree::leaf(n + m1);
-                    }
+                    return EventTree::leaf(n + m1);
                 }
 
                 let min_left = norm_left.n(); // n() extracts n from leaf or node
@@ -604,8 +603,7 @@ impl Arbitrary for ItcClock {
         // Each replica does 0-4 ticks, then we merge a random subset.
         (1usize..=3, proptest::collection::vec(0u8..5, 1..=3))
             .prop_flat_map(|(num_replicas, tick_counts)| {
-                let tick_counts: Vec<u8> =
-                    tick_counts.into_iter().take(num_replicas).collect();
+                let tick_counts: Vec<u8> = tick_counts.into_iter().take(num_replicas).collect();
                 Just(tick_counts)
             })
             .prop_map(|tick_counts| {
