@@ -40,6 +40,24 @@ _Updates from several nodes can be grouped arbitrarily_
 For state updates $A$, $B$, and $C$, and a merge operator $\sqcup$, $(A \sqcup B) \sqcup C = A \sqcup (B \sqcup C)$
 
 
+## Delta-State Synchronization
+
+When replicas reconnect they don't need to exchange full state. The [`DeltaSync`](src/delta_sync/mod.rs) trait lets a replica advertise a compact `Summary` of what it already knows; the peer replies with a minimal `Delta` carrying only the missing information.
+
+1. `B` sends `B.summary()` to `A` — cheap metadata, not the full state
+2. `A` computes `A.delta_from_summary(&b_summary)` — only what `B` is missing
+3. `A` sends the delta back, and `B` applies it via `B.merge_delta(&delta)`
+
+The `Summary` shape adapts to each category above: a version vector for **Identified** CRDTs (`GCounter`, `VectorClock`), a structural event tree for **Causal** CRDTs (`ItcClock`), or the full state for **Primitive** CRDTs that have no compact form (`GSet`). `#[derive(DeltaSync)]` composes these into a per-field tuple summary for your own structs.
+
+Delta sync produces the **same** result as a full-state merge — it is only cheaper on the wire. This equivalence (along with [inflation](src/delta_sync/checks.rs#check_delta_inflation) and [composition](src/delta_sync/checks.rs#check_delta_composition)) is verified with property-based tests:
+
+### [Delta–Merge Equivalence](src/delta_sync/checks.rs#check_delta_merge_equivalence)
+_Syncing a delta yields the same state as merging the full replica_
+
+For states $A$ and $B$, $A \sqcup \delta(B, \sigma(A)) = A \sqcup B$, where $\sigma$ is `summary` and $\delta$ is `delta_from_summary`.
+
+See [`examples/delta_remote_sync.rs`](examples/delta_remote_sync.rs) for a runnable walkthrough over a simulated network, and [the sequence diagram](examples/delta_sync_diagram.md) for a step-by-step trace of what travels on the wire.
 
 # Features
 * **`serde`**: Make your CRDTs serializable
