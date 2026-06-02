@@ -1,6 +1,9 @@
-use crate::{Apply, Crdt};
+use crate::{Apply, Crdt, DeltaSync};
 use std::collections::HashSet;
 use std::hash::Hash;
+
+#[cfg(feature = "proptest")]
+use proptest::prelude::*;
 
 /// A Grow-only Set (G-Set) CRDT.
 ///
@@ -77,5 +80,51 @@ where
     /// Returns true if the set is empty.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+}
+
+impl<T> DeltaSync for GSet<T>
+where
+    T: Hash + Eq + Clone + std::fmt::Debug,
+{
+    // No compact summary exists for a GSet — the full state is the summary.
+    type Summary = Self;
+    type Delta = Self;
+
+    fn summary(&self) -> Self::Summary {
+        self.clone()
+    }
+
+    fn delta_from_summary(&self, remote_summary: &Self::Summary) -> Self {
+        // Only include elements the remote doesn't have
+        let mut delta = GSet::new();
+        for item in &self.0 {
+            if !remote_summary.0.contains(item) {
+                delta.0.insert(item.clone());
+            }
+        }
+        delta
+    }
+
+    fn merge_delta(&mut self, delta: &Self) {
+        self.merge(delta);
+    }
+}
+
+#[cfg(feature = "proptest")]
+impl Arbitrary for GSet<String> {
+    type Parameters = ();
+    type Strategy = BoxedStrategy<Self>;
+
+    fn arbitrary_with(_: Self::Parameters) -> Self::Strategy {
+        proptest::collection::hash_set("[a-e]".prop_map(String::from), 0..5)
+            .prop_map(|set| {
+                let mut gset = GSet::new();
+                for item in set {
+                    gset.insert(item);
+                }
+                gset
+            })
+            .boxed()
     }
 }

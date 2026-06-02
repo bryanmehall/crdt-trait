@@ -1,6 +1,10 @@
-use crate::{Apply, Crdt};
+use super::Identified;
+use crate::{Apply, Crdt, DeltaSync};
 use std::collections::HashMap;
 use std::hash::Hash;
+
+#[cfg(feature = "proptest")]
+use proptest::prelude::*;
 
 /// A Grow-only Counter (G-Counter) CRDT.
 ///
@@ -68,6 +72,41 @@ where
     }
 }
 
+impl<I> DeltaSync for GCounter<I>
+where
+    I: Hash + Eq + Clone + std::fmt::Debug,
+{
+    type Summary = HashMap<I, u64>;
+    type Delta = Self;
+
+    fn summary(&self) -> Self::Summary {
+        self.counts.clone()
+    }
+
+    fn delta_from_summary(&self, remote_summary: &Self::Summary) -> Self {
+        let mut delta = GCounter::new();
+        for (replica, &count) in &self.counts {
+            let remote_count = remote_summary.get(replica).copied().unwrap_or(0);
+            if count > remote_count {
+                delta.counts.insert(replica.clone(), count);
+            }
+        }
+        delta.cached_value = delta.counts.values().sum();
+        delta
+    }
+
+    fn merge_delta(&mut self, delta: &Self) {
+        self.merge(delta);
+    }
+}
+
+impl<I> Identified for GCounter<I>
+where
+    I: Hash + Eq + Clone + std::fmt::Debug,
+{
+    type ReplicaId = I;
+}
+
 impl<I> GCounter<I>
 where
     I: Hash + Eq + Clone,
@@ -87,5 +126,23 @@ where
         let entry = self.counts.entry(replica).or_insert(0);
         *entry += amount;
         self.cached_value += amount;
+    }
+}
+
+#[cfg(feature = "proptest")]
+impl Arbitrary for GCounter<String> {
+    type Parameters = ();
+    type Strategy = BoxedStrategy<Self>;
+
+    fn arbitrary_with(_: Self::Parameters) -> Self::Strategy {
+        proptest::collection::hash_map("[a-c]".prop_map(String::from), 1u64..100, 0..4)
+            .prop_map(|counts| {
+                let mut counter = GCounter::new();
+                for (replica, amount) in counts {
+                    counter.add(amount, replica);
+                }
+                counter
+            })
+            .boxed()
     }
 }

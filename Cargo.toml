@@ -31,3 +31,11 @@ required-features = ["proptest", "derive"]
 [[example]]
 name = "consistency_failure"
 required-features = ["proptest"]
+
+[[example]]
+name = "delta_sync"
+required-features = ["proptest"]
+
+[[example]]
+name = "delta_remote_sync"
+required-features = ["proptest", "derive"]

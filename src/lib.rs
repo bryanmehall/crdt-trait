@@ -4,15 +4,19 @@ extern crate alloc;
 
 pub mod causal;
 pub mod crdt;
+pub mod delta_sync;
 pub mod identified;
 pub mod primitive;
 pub mod replica;
 pub mod traits;
 
+pub use crate::causal::Causal;
 pub use crate::causal::itc::{ItcClock, ItcId, ItcReplica};
 #[cfg(feature = "std")]
 pub use crate::causal::vector::VectorClock;
 pub use crate::crdt::Crdt;
+pub use crate::delta_sync::DeltaSync;
+pub use crate::identified::Identified;
 #[cfg(feature = "std")]
 pub use crate::identified::gcounter::GCounter;
 #[cfg(feature = "std")]
@@ -22,8 +26,11 @@ pub use crate::traits::Apply;
 
 #[cfg(feature = "derive")]
 pub use crdt_derive::Crdt;
+#[cfg(feature = "derive")]
+pub use crdt_derive::DeltaSync;
 
 #[cfg(feature = "proptest")]
 pub mod properties {
     pub use crate::crdt::checks::*;
+    pub use crate::delta_sync::checks::*;
 }
